@@ -2,7 +2,7 @@
 
 ## The team
 
-- Foo bar: email1
-- bar bar: email2
+- BEN ABDELJELIL Mohamed: m.abdeljelil@outlook.com
+- RASAMIZANANY Sam: rskkya@gmail.com
 
 ## Comments
