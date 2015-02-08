@@ -1,23 +1,20 @@
 package fr.unice.vicc;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 import org.cloudbus.cloudsim.Host;
 import org.cloudbus.cloudsim.Vm;
 import org.cloudbus.cloudsim.VmAllocationPolicy;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-/**
- * @author Fabien Hermenier
- */
-public class NaiveVmAllocationPolicy extends VmAllocationPolicy {
-
+public class BalanceVmAllocationPolicy extends VmAllocationPolicy {
 	// To track the Host for each Vm. The string is the unique Vm identifier,
 	// composed by its id and its userId
 	private Map<String, Host> vmTable;
 
-	public NaiveVmAllocationPolicy(List<? extends Host> list) {
+	public BalanceVmAllocationPolicy(List<? extends Host> list) {
 		super(list);
 		vmTable = new HashMap<>();
 	}
@@ -33,25 +30,37 @@ public class NaiveVmAllocationPolicy extends VmAllocationPolicy {
 	}
 
 	public boolean allocateHostForVm(Vm vm, Host host) {
+		// System.out.println("MIPS=>"+host.getTotalMips());
 		if (host.vmCreate(vm)) {
 			// the host is appropriate, we track it
 			vmTable.put(vm.getUid(), host);
 			return true;
 		}
+
 		return false;
 	}
 
 	public boolean allocateHostForVm(Vm vm) {
 		// First fit algorithm, run on the first suitable node
+		Map<Host, Double> mapMips = new HashMap<Host, Double>();
+		ValueComparator comparateur = new ValueComparator(mapMips);
+		TreeMap<Host, Double> mapTriee = new TreeMap<Host, Double>(comparateur);
+
 		for (Host h : getHostList()) {
+			mapMips.put(h, h.getAvailableMips());
+		}
+		mapTriee.putAll(mapMips);
+		
+		
+		Host h=mapTriee.firstKey();
+		if (h.vmCreate(vm)) {
+			// track the host
+			vmTable.put(vm.getUid(), h);
 			
-			if (h.vmCreate(vm)) {
-				// track the host
-				vmTable.put(vm.getUid(), h);
-				return true;
-			}
+			return true;
 		}
 		return false;
+
 	}
 
 	public void deallocateHostForVm(Vm vm, Host host) {

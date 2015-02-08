@@ -17,6 +17,7 @@ public class Revenue {
 
 
     private PeakPowerObserver peakObs;
+    private BalanceObserver balObs;
 
     private PowerDatacenter dc;
 
@@ -39,6 +40,7 @@ public class Revenue {
         this.dc = dc;
         this.peakObs = po;
     }
+   
 
     /**
      * Compute the provider revenues.
@@ -109,8 +111,9 @@ public class Revenue {
     public double refund(Vm v, double availability) {
         double hourlyCost = getCost(v);
         //how missing point are missing
-        double missing = 100 - availability;
-        return hourlyCost * (0.10 * missing * missing) * 24;
+        double missing = 100 - availability;       
+        double x=hourlyCost * (0.10 * missing * missing) * 24;
+        return x;
     }
 
     /**
@@ -133,7 +136,8 @@ public class Revenue {
             //The total number of Mips the VMs should have in theory
             double totalAllocated = v.getMips() * Constants.SIMULATION_LIMIT;
             //The % of time it eventually had enough MIPS
-            double availabilityPct = (totalAllocated - totalMissing) / totalAllocated * 100;
+            double availabilityPct = (totalAllocated - totalMissing) / totalAllocated * 100;  
+            
         return availabilityPct;
     }
 

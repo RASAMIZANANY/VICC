@@ -1,52 +1,46 @@
 package fr.unice.vicc;
 
+import java.util.List;
+
+import org.cloudbus.cloudsim.Host;
 import org.cloudbus.cloudsim.Log;
 import org.cloudbus.cloudsim.core.SimEntity;
 import org.cloudbus.cloudsim.core.SimEvent;
 import org.cloudbus.cloudsim.power.PowerHost;
 
-import java.util.List;
+public class BalanceObserver extends SimEntity {
 
-/**
- * A component connected to the simulator.
-
- * Regularly, the component is called to check the instantaneous power consumption of the datacenter.
- * @author Fabien Hermenier
- */
-public class PeakPowerObserver extends SimEntity {
-
-    /** The custom event id, must be unique. */
-    public static final int OBSERVE = 728078;
+	/** The custom event id, must be unique. */
+    public static final int OBSERVE = 801596;
 
     private List<PowerHost> hosts;
-
-    private double peak;
-
+    private double hostsUsed;
     private float delay;
 
     public static final float DEFAULT_DELAY = 1;
 
-    public PeakPowerObserver(List<PowerHost> hosts) {
+    public BalanceObserver(List<PowerHost> hosts) {
         this(hosts, DEFAULT_DELAY);
     }
 
-    public PeakPowerObserver(List<PowerHost> hosts, float delay) {
-        super("PeakPowerObserver");
+    public BalanceObserver(List<PowerHost> hosts, float delay) {
+        super("BalanceObserver");
         this.hosts = hosts;
         this.delay = delay;
     }
 
 
     /**
-     * Get the datacenter instantaneous power.
-     * @return a number in Watts
+     * Get the number of hosts used
+     * @return 
      */
-    private double getPower() {
-        double p = 0;
-        for (PowerHost h : hosts) {
-            p += h.getPower();
+    private double getNumberOfHostsUsed() {
+        double s = 0;
+        for (Host h : hosts) {
+        	if(h.getAvailableMips()!=h.getTotalMips())
+        		s += 1;
         }
-        return p;
+        return s;
     }
 
     /*
@@ -61,25 +55,28 @@ public class PeakPowerObserver extends SimEntity {
         switch(ev.getTag()) {
             case OBSERVE: //It is my custom event
                 //I must observe the datacenter
-                double cur = getPower();
-                if (cur > peak) {
-                    peak = cur;
-                   
+                double cur = getNumberOfHostsUsed();
+                if(cur >hostsUsed)
+                {
+                	hostsUsed=cur;
+                	System.out.println("Number of hosts used=>"+hostsUsed);
                 }
+                
+                
                 //Observation loop, re-observe in `delay` seconds
                 send(this.getId(), delay, OBSERVE, null);
                
         }
     }
 
+    
     /**
-     * Get the peak power consumption.
+     * Get the hostsUsed power consumption.
      * @return a number of Watts
      */
-    public double getPeak() {
-        return peak;
+    public double gethostsUsed() {
+        return hostsUsed;
     }
-
     @Override
     public void shutdownEntity() {
         Log.printLine(getName() + " is shutting down...");
@@ -92,4 +89,5 @@ public class PeakPowerObserver extends SimEntity {
         //`processEvent`
         send(this.getId(), delay, OBSERVE, null);
     }
+
 }

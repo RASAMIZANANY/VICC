@@ -1,23 +1,19 @@
 package fr.unice.vicc;
 
-import org.cloudbus.cloudsim.Host;
-import org.cloudbus.cloudsim.Vm;
-import org.cloudbus.cloudsim.VmAllocationPolicy;
-
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author Fabien Hermenier
- */
-public class NaiveVmAllocationPolicy extends VmAllocationPolicy {
+import org.cloudbus.cloudsim.Host;
+import org.cloudbus.cloudsim.Vm;
+import org.cloudbus.cloudsim.VmAllocationPolicy;
 
-	// To track the Host for each Vm. The string is the unique Vm identifier,
-	// composed by its id and its userId
+public class StatEnergyVmAllocationPolicy extends VmAllocationPolicy {
+
 	private Map<String, Host> vmTable;
 
-	public NaiveVmAllocationPolicy(List<? extends Host> list) {
+	public StatEnergyVmAllocationPolicy(List<? extends Host> list) {
 		super(list);
 		vmTable = new HashMap<>();
 	}
@@ -33,26 +29,35 @@ public class NaiveVmAllocationPolicy extends VmAllocationPolicy {
 	}
 
 	public boolean allocateHostForVm(Vm vm, Host host) {
+
 		if (host.vmCreate(vm)) {
 			// the host is appropriate, we track it
 			vmTable.put(vm.getUid(), host);
 			return true;
 		}
+
 		return false;
 	}
 
 	public boolean allocateHostForVm(Vm vm) {
-		// First fit algorithm, run on the first suitable node
+
 		for (Host h : getHostList()) {
-			
-			if (h.vmCreate(vm)) {
-				// track the host
-				vmTable.put(vm.getUid(), h);
-				return true;
+		
+			if (h.getAvailableMips()-vm.getMips()<5000) {
+				if (h.vmCreate(vm)) { // track the host
+					vmTable.put(vm.getUid(), h);
+					return true;
+
+				}
 			}
+
 		}
 		return false;
+
 	}
+
+
+	
 
 	public void deallocateHostForVm(Vm vm, Host host) {
 		vmTable.remove(vm.getUid());

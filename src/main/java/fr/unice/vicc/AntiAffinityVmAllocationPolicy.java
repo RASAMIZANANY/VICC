@@ -1,23 +1,19 @@
 package fr.unice.vicc;
 
-import org.cloudbus.cloudsim.Host;
-import org.cloudbus.cloudsim.Vm;
-import org.cloudbus.cloudsim.VmAllocationPolicy;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author Fabien Hermenier
- */
-public class NaiveVmAllocationPolicy extends VmAllocationPolicy {
+import org.cloudbus.cloudsim.Host;
+import org.cloudbus.cloudsim.Vm;
+import org.cloudbus.cloudsim.VmAllocationPolicy;
 
+public class AntiAffinityVmAllocationPolicy extends VmAllocationPolicy {
 	// To track the Host for each Vm. The string is the unique Vm identifier,
 	// composed by its id and its userId
 	private Map<String, Host> vmTable;
 
-	public NaiveVmAllocationPolicy(List<? extends Host> list) {
+	public AntiAffinityVmAllocationPolicy(List<? extends Host> list) {
 		super(list);
 		vmTable = new HashMap<>();
 	}
@@ -33,25 +29,56 @@ public class NaiveVmAllocationPolicy extends VmAllocationPolicy {
 	}
 
 	public boolean allocateHostForVm(Vm vm, Host host) {
-		if (host.vmCreate(vm)) {
-			// the host is appropriate, we track it
-			vmTable.put(vm.getUid(), host);
-			return true;
+		int intervalle=vm.getId()/100;
+		//System.out.println("Intervalle=>"+ intervalle);
+		boolean res=true;
+		
+		for(Vm v1 : host.getVmList())
+		{
+			if (inTheIntervall(v1)==intervalle)
+			{
+				res=false;
+				break;
+			}
+				
+		}
+		if(res==true)
+		{	
+				if (host.vmCreate(vm)) {
+					// the host is appropriate, we track it
+					vmTable.put(vm.getUid(), host);
+					return true;
+				}	
 		}
 		return false;
 	}
 
 	public boolean allocateHostForVm(Vm vm) {
 		// First fit algorithm, run on the first suitable node
+		int intervalle=vm.getId()/100;
+		//System.out.println("Intervalle=>"+ intervalle);
+		boolean res;
 		for (Host h : getHostList()) {
-			
-			if (h.vmCreate(vm)) {
-				// track the host
-				vmTable.put(vm.getUid(), h);
-				return true;
+			res=true;
+			for(Vm v1 : h.getVmList())
+			{
+				if (inTheIntervall(v1)==intervalle)
+				{
+					res=false;
+					break;
+				}
+			}
+			if(res==true)
+			{	
+					if (h.vmCreate(vm)) {
+						// the host is appropriate, we track it
+						vmTable.put(vm.getUid(), h);
+						return true;
+					}	
 			}
 		}
 		return false;
+		
 	}
 
 	public void deallocateHostForVm(Vm vm, Host host) {
@@ -74,4 +101,9 @@ public class NaiveVmAllocationPolicy extends VmAllocationPolicy {
 		// Static scheduling, no migration, return null;
 		return null;
 	}
+	public int inTheIntervall(Vm vm)
+	{
+		return vm.getId()/100;
+	}
+
 }

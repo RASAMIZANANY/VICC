@@ -48,10 +48,11 @@ public class Main {
 
         //800 hosts
         List<PowerHost> hosts = Helper.createHostList(800);
+       
 
         //The scheduling algorithm
         VmAllocationPolicy policy = policies.make(impl, hosts);
-
+       
         //the datacenter
         PowerDatacenter datacenter =  Helper.createDatacenter("Datacenter",hosts,policy);
 
@@ -60,6 +61,7 @@ public class Main {
 
         //Here you can insert your observers
         PeakPowerObserver peakPowerObserver = new PeakPowerObserver(hosts);
+        BalanceObserver balanceObserver=new BalanceObserver(hosts);
         observers.build(hosts);
 
         double x = CloudSim.startSimulation();
